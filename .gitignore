@@ -1,4 +1,4 @@
 
-# Ignore all compiled files
+# Ignore Compiled File
 
-*.exe
+project.exe
