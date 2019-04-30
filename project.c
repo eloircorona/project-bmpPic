@@ -3,6 +3,7 @@
 // Libraries
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 // Define
 #define MAX_WIDTH 500
@@ -33,6 +34,7 @@ typedef struct fileInfoHeader {
 
 typedef struct fileData {
     char dataArray[MAX_WIDTH][MAX_HEIGHT][3];
+    char newArray[MAX_HEIGHT][MAX_WIDTH][3];
 } fileData;
 
 fileHeader fHeader;
@@ -41,15 +43,25 @@ fileData fdata;
 
 // Function Declarations
 int readFile(char *filename);
+char interface();
 void printPicture();
+void colorSeparation(int input[]);
+void blur();
+
 
 // Functions
 int main(char agrc, char *agrv[])
 {
     if(readFile(agrv[1]))
     {
+        int input[3];
+        input[0] = atoi(agrv[2]);
+        input[1] = atoi(agrv[3]);
+        input[2] = atoi(agrv[4]);
+
+        colorSeparation(input);
         printPicture();
-        
+
     } else ;
 }
 
@@ -87,26 +99,65 @@ int readFile(char filename[])
 
             if(fInfoHeader.bpp == 24)
             {
-                for(int i = fInfoHeader.height - 1 ; i >= 0; i--)
-                {
-                    for(int j = 0 ; j < fInfoHeader.width ; j++)
-                    {
-                        fread(&b, sizeof(unsigned char), 1, file);
-                        fread(&g, sizeof(unsigned char), 1, file);
-                        fread(&r, sizeof(unsigned char), 1, file);
+               for(int i = fInfoHeader.height - 1 ; i >= 0; i--)
+               {
+                   for(int j = 0 ; j < fInfoHeader.width ; j++)
+                   {
+                       fread(&b, sizeof(unsigned char), 1, file);
+                       fread(&g, sizeof(unsigned char), 1, file);
+                       fread(&r, sizeof(unsigned char), 1, file);
 
-                        fdata.dataArray[fInfoHeader.height - i][fInfoHeader.width - j][0] = r;
-                        fdata.dataArray[fInfoHeader.height - i][fInfoHeader.width - j][1] = g;
-                        fdata.dataArray[fInfoHeader.height - i][fInfoHeader.width - j][2] = b;
-                    }
-                }
-                return 1;
+                       fdata.dataArray[fInfoHeader.height - i][fInfoHeader.width - j][0] = r;
+                       fdata.dataArray[fInfoHeader.height - i][fInfoHeader.width - j][1] = g;
+                       fdata.dataArray[fInfoHeader.height - i][fInfoHeader.width - j][2] = b;
+                   }
+               }
             }
+            return 1;
 
             fclose(file);
 
         } else printf("La imagen no está en formato BMP.\n");
         return 0;
+    }
+}
+
+void colorSeparation(int input[])
+{
+    char input_r = input[0];
+    char input_g = input[1];
+    char input_b = input[2];
+
+    for(int i = 0; i < fInfoHeader.height; i++)
+    {
+        for(int j = 0; j < fInfoHeader.width; j++)
+        {
+            if(fdata.dataArray[i][j][0] == input_r)
+            {
+                if(fdata.dataArray[i][j][1] == input_g)
+                {
+                    if(fdata.dataArray[i][j][2] == input_b)
+                    {
+                         fdata.newArray[i][j][0] = input_r;
+                         fdata.newArray[i][j][1] = input_g;
+                         fdata.newArray[i][j][2] = input_b;
+
+                    } else {
+                        fdata.newArray[i][j][0] = 0;
+                        fdata.newArray[i][j][1] = 0;
+                        fdata.newArray[i][j][2] = 0;
+                    }
+                } else {
+                    fdata.newArray[i][j][0] = 0;
+                    fdata.newArray[i][j][1] = 0;
+                    fdata.newArray[i][j][2] = 0;
+                }
+            } else {
+                fdata.newArray[i][j][0] = 0;
+                fdata.newArray[i][j][1] = 0;
+                fdata.newArray[i][j][2] = 0;
+            }
+        }
     }
 }
 
@@ -118,9 +169,9 @@ void printPicture()
     {
         for(int j = 0; j < fInfoHeader.width; j++)
         {
-            r = fdata.dataArray[fInfoHeader.height - i][fInfoHeader.width - j][0];
-            g = fdata.dataArray[fInfoHeader.height - i][fInfoHeader.width - j][1];
-            b = fdata.dataArray[fInfoHeader.height - i][fInfoHeader.width - j][2];
+            r = fdata.newArray[fInfoHeader.height - i][fInfoHeader.width - j][0];
+            g = fdata.newArray[fInfoHeader.height - i][fInfoHeader.width - j][1];
+            b = fdata.newArray[fInfoHeader.height - i][fInfoHeader.width - j][2];
 
             if(r == 0xFF && g == 0x00 && b == 0x00)
             {
@@ -136,11 +187,13 @@ void printPicture()
             }
             else if(r == 0x00 && g == 0x00 && b == 0x00)
             {
-                printf("nn");
+                printf("..");
             }
             else if(r == 0xFF && g == 0xFF && b == 0xFF)
             {
                 printf("..");
+            } else {
+                printf("UU");
             }
         }
         printf("\n");
