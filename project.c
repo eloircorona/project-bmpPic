@@ -113,9 +113,9 @@ int readFile(char filename[])
                    }
                }
             }
-            return 1;
 
             fclose(file);
+            return 1;
 
         } else printf("La imagen no está en formato BMP.\n");
         return 0;
