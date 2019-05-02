@@ -9,6 +9,8 @@
 #define MAX_WIDTH 500
 #define MAX_HEIGHT 500
 
+#define FILTER_WIDTH 3
+#define FILTER_HEIGHT 3
 // Structs
 typedef struct fileHeader {
     short signature;
@@ -40,6 +42,13 @@ typedef struct fileData {
 fileHeader fHeader;
 fileInfoHeader fInfoHeader;
 fileData fdata;
+
+//global variables
+double filter[FILTER_WIDTH][FILTER_HEIGHT] = { 0,0,0,
+                                               0,1,0,
+                                               0,0,0};
+double factor = 0.0;
+double bias = 0.0;
 
 // Function Declarations
 int readFile(char *filename);
@@ -198,4 +207,31 @@ void printPicture()
         }
         printf("\n");
     }
+}
+
+void blur()
+{
+    unsigned char r, g, b;
+
+    for(int i = 0; i < fInfoHeader.height; i++)
+        for(int j = 0; j < fInfoHeader.width; j++)
+        {
+            double r = 0.0, g = 0.0, b = 0.0;
+
+            for(int filX = 0; filX < FILTER_HEIGHT; filX++)
+                for(int filY = 0; filY < FILTER_WIDTH; filY++)
+                {
+                    int imgX = (i - FILTER_WIDTH / 2 + filX + fInfoHeader.width) % fInfoHeader.width;
+                    int imgY = (j - FILTER_HEIGHT / 2 + filY + fInfoHeader.height) % fInfoHeader.height;
+                    r += fdata.dataArray[imgY * fInfoHeader.width][y][0] * filter[filX][filY];
+                    g += fdata.dataArray[imgY * fInfoHeader.width][y][1] * filter[filX][filY];
+                    b += fdata.dataArray[imgY * fInfoHeader.width][y][2] * filter[filX][filY];
+                }
+
+            newArray[][][0] = (factor * r + bias) > 255 ? 255: (factor * r + bias) < 0 ? 0 : (factor * r + bias);
+            newArray[][][1] = (factor * g + bias) > 255 ? 255: (factor * g + bias) < 0 ? 0 : (factor * g + bias);
+            newArray[][][2] = (factor * b + bias) > 255 ? 255: (factor * b + bias) < 0 ? 0 : (factor * b + bias);
+        }   
+    
+
 }
