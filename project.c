@@ -1,5 +1,4 @@
 
-
 // Libraries
 #include <stdio.h>
 #include <string.h>
@@ -11,6 +10,7 @@
 
 #define FILTER_WIDTH 3
 #define FILTER_HEIGHT 3
+
 // Structs
 typedef struct fileHeader {
     short signature;
@@ -47,29 +47,29 @@ fileData fdata;
 double filter[FILTER_WIDTH][FILTER_HEIGHT] = { 0,0,0,
                                                0,1,0,
                                                0,0,0};
-double factor = 0.0;
+double factor = 1.0;
 double bias = 0.0;
 
 // Function Declarations
 int readFile(char *filename);
 char interface();
 void printPicture();
+void savefile();
 void colorSeparation(int input[]);
 void blur();
 
-
 // Functions
-int main(char agrc, char *agrv[])
+int main(int agrc, char *agrv[])
 {
     if(readFile(agrv[1]))
     {
-        int input[3];
+        /*int input[3];
         input[0] = atoi(agrv[2]);
         input[1] = atoi(agrv[3]);
-        input[2] = atoi(agrv[4]);
+        input[2] = atoi(agrv[4]);*/
 
-        colorSeparation(input);
-        printPicture();
+        savefile();
+      //  blur();
 
     } else ;
 }
@@ -127,8 +127,9 @@ int readFile(char filename[])
             return 1;
 
         } else printf("La imagen no está en formato BMP.\n");
-        return 0;
+       
     }
+     return 0;
 }
 
 void colorSeparation(int input[])
@@ -209,6 +210,17 @@ void printPicture()
     }
 }
 
+void savefile()
+{
+    int x = 1;
+    FILE *fh = fopen ("file.txt", "wb");
+    if (fh != NULL) {
+        fwrite (&x, sizeof (x)  , 1, fh);
+        fclose (fh);
+    }
+
+}
+
 void blur()
 {
     unsigned char r, g, b;
@@ -223,15 +235,14 @@ void blur()
                 {
                     int imgX = (i - FILTER_WIDTH / 2 + filX + fInfoHeader.width) % fInfoHeader.width;
                     int imgY = (j - FILTER_HEIGHT / 2 + filY + fInfoHeader.height) % fInfoHeader.height;
-                    r += fdata.dataArray[imgY * fInfoHeader.width][y][0] * filter[filX][filY];
-                    g += fdata.dataArray[imgY * fInfoHeader.width][y][1] * filter[filX][filY];
-                    b += fdata.dataArray[imgY * fInfoHeader.width][y][2] * filter[filX][filY];
+                    r += fdata.dataArray[i][j][0] * filter[filX][filY];
+                    g += fdata.dataArray[i][j][1] * filter[filX][filY];
+                    b += fdata.dataArray[i][j][2] * filter[filX][filY];
                 }
 
-            newArray[][][0] = (factor * r + bias) > 255 ? 255: (factor * r + bias) < 0 ? 0 : (factor * r + bias);
-            newArray[][][1] = (factor * g + bias) > 255 ? 255: (factor * g + bias) < 0 ? 0 : (factor * g + bias);
-            newArray[][][2] = (factor * b + bias) > 255 ? 255: (factor * b + bias) < 0 ? 0 : (factor * b + bias);
+            fdata.newArray[i][j][0] = (factor * r + bias) > 255 ? 255: (factor * r + bias) < 0 ? 0 : (factor * r + bias);
+            fdata.newArray[i][j][1] = (factor * g + bias) > 255 ? 255: (factor * g + bias) < 0 ? 0 : (factor * g + bias);
+            fdata.newArray[i][j][2] = (factor * b + bias) > 255 ? 255: (factor * b + bias) < 0 ? 0 : (factor * b + bias);
         }   
-    
-
 }
+
