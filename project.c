@@ -56,22 +56,24 @@ char interface();
 void printPicture();
 void colorSeparation(int input[]);
 void blur();
-
+void createFile();
 
 // Functions
-int main(char agrc, char *agrv[])
+int main(int agrc, char *agrv[])
 {
-    if(readFile(agrv[1]))
+    int option = atoi(agrv[1]);
+    if(readFile(agrv[2]))
     {
         int input[3];
-        input[0] = atoi(agrv[2]);
-        input[1] = atoi(agrv[3]);
-        input[2] = atoi(agrv[4]);
+        input[0] = atoi(agrv[3]);
+        input[1] = atoi(agrv[4]);
+        input[2] = atoi(agrv[5]);
 
         colorSeparation(input);
         printPicture();
 
     } else ;
+    createFile(option);
 }
 
 int readFile(char filename[])
@@ -127,8 +129,8 @@ int readFile(char filename[])
             return 1;
 
         } else printf("La imagen no está en formato BMP.\n");
-        return 0;
     }
+    return 0;
 }
 
 void colorSeparation(int input[])
@@ -209,29 +211,31 @@ void printPicture()
     }
 }
 
-void blur()
+
+void createFile()
 {
-    unsigned char r, g, b;
+    FILE *file;
+    file = fopen("imagen.bmp","w");
 
+    fHeader.offset = sizeof(fHeader) + sizeof(fInfoHeader) - 2;
+
+    fwrite(&fHeader.signature, sizeof(fHeader.signature), 1, file);
+    fwrite(&fHeader.size, sizeof(fHeader.size), 1, file);
+    fwrite(&fHeader.reserved1, sizeof(fHeader.reserved1), 1, file);
+    fwrite(&fHeader.reserved2, sizeof(fHeader.reserved2), 1, file);
+    fwrite(&fHeader.offset, sizeof(fHeader.offset), 1, file);
+    fwrite(&fInfoHeader, sizeof(fInfoHeader), 1, file);
     for(int i = 0; i < fInfoHeader.height; i++)
-        for(int j = 0; j < fInfoHeader.width; j++)
+    {
+        for(int j = fInfoHeader.width - 1; j >= 0; j--)
         {
-            double r = 0.0, g = 0.0, b = 0.0;
+            for(int k = 2; k >= 0; k--)
+            {
+                fwrite(&fdata.newArray[i][j][k], sizeof(char), 1, file);
+            }
+        }
+    }
 
-            for(int filX = 0; filX < FILTER_HEIGHT; filX++)
-                for(int filY = 0; filY < FILTER_WIDTH; filY++)
-                {
-                    int imgX = (i - FILTER_WIDTH / 2 + filX + fInfoHeader.width) % fInfoHeader.width;
-                    int imgY = (j - FILTER_HEIGHT / 2 + filY + fInfoHeader.height) % fInfoHeader.height;
-                    r += fdata.dataArray[imgY * fInfoHeader.width][y][0] * filter[filX][filY];
-                    g += fdata.dataArray[imgY * fInfoHeader.width][y][1] * filter[filX][filY];
-                    b += fdata.dataArray[imgY * fInfoHeader.width][y][2] * filter[filX][filY];
-                }
 
-            newArray[][][0] = (factor * r + bias) > 255 ? 255: (factor * r + bias) < 0 ? 0 : (factor * r + bias);
-            newArray[][][1] = (factor * g + bias) > 255 ? 255: (factor * g + bias) < 0 ? 0 : (factor * g + bias);
-            newArray[][][2] = (factor * b + bias) > 255 ? 255: (factor * b + bias) < 0 ? 0 : (factor * b + bias);
-        }   
-    
-
+    fclose(file);
 }
