@@ -1,0 +1,34 @@
+
+    <div class="container pt-5">
+        <div class="row">
+            <div class="col-4 border">
+                <h2 class="text-center pt-2">Proyecto bmpPic</h2>
+                <hr>
+                <input type="file" name="" value=""><input type="submit" value="Subir">
+                <hr>
+                <div class="list-group pb-5">
+                    <h5 class="list-group-item">Filtros disponibles</h5>
+                    <a href="{{ base_url }}index.php?opt=1{% if image %}&image={{ image }}{% endif %}" class="list-group-item {% if opt == 1 %}active{% endif %}">Separar Color</a>
+                    <a href="{{ base_url }}index.php?opt=2" class="list-group-item {% if opt == 2 %}active{% endif %}">Filtro 2</a>
+                    <a href="{{ base_url }}index.php?opt=3" class="list-group-item {% if opt == 3 %}active{% endif %}">Filtro 3</a>
+                    <a href="{{ base_url }}index.php?opt=4" class="list-group-item {% if opt == 4 %}active{% endif %}">Filtro 4</a>
+                    <a href="{{ base_url }}index.php?opt=5" class="list-group-item {% if opt == 5 %}active{% endif %}">Filtro 5</a>
+                    <a href="{{ base_url }}index.php?opt=6" class="list-group-item {% if opt == 6 %}active{% endif %}">Filtro 6</a>
+                    <a href="{{ base_url }}index.php?opt=7" class="list-group-item {% if opt == 7 %}active{% endif %}">Filtro 7</a>
+                </div>
+            </div>
+
+            <div class="col-8 border">
+                <div class="row">
+                    <div class="col-6">
+                        <h3>Original</h3>
+                        <img src="{{ image_name }}" alt="">
+                    </div>
+                    <div class="col-6">
+                        <h3>Filtro: {{ opt_name }}</h3>
+                        <img src="imagen.bmp" alt="">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>

@@ -57,7 +57,7 @@ char interface();
 void printPicture();
 void colorSeparation(int input[]);
 void blur();
-void createFile(int option);
+void createFile();
 
 // Functions
 int main(int agrc, char *agrv[])
@@ -74,7 +74,7 @@ int main(int agrc, char *agrv[])
         printPicture();
 
     } else ;
-    createFile(option);
+    createFile();
 }
 
 int readFile(char filename[])
@@ -213,7 +213,7 @@ void printPicture()
 }
 
 
-void createFile(int option)
+void createFile()
 {
     FILE *file;
     file = fopen("imagen.bmp","w");
