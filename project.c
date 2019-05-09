@@ -11,6 +11,7 @@
 
 #define FILTER_WIDTH 3
 #define FILTER_HEIGHT 3
+
 // Structs
 typedef struct fileHeader {
     short signature;
