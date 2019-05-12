@@ -5,8 +5,8 @@
 #include <stdlib.h>
 
 // Define
-#define MAX_WIDTH 500
-#define MAX_HEIGHT 500
+#define MAX_WIDTH 1000
+#define MAX_HEIGHT 1000
 
 #define FILTER_WIDTH 3
 #define FILTER_HEIGHT 3
@@ -34,8 +34,8 @@ typedef struct fileInfoHeader {
 } fileInfoHeader;
 
 typedef struct fileData {
-    char dataArray[MAX_WIDTH][MAX_HEIGHT][3];
-    char newArray[MAX_HEIGHT][MAX_WIDTH][3];
+    unsigned char dataArray[MAX_WIDTH][MAX_HEIGHT][3];
+    unsigned char newArray[MAX_WIDTH][MAX_HEIGHT][3];
 } fileData;
 
 fileHeader fHeader;
@@ -46,7 +46,7 @@ fileData fdata;
 double filter[FILTER_WIDTH][FILTER_HEIGHT] = { 0,0,0,
                                                0,1,0,
                                                0,0,0};
-double factor = 0.0;
+double factor = 1.0;
 double bias = 0.0;
 
 // Function Declarations
@@ -60,6 +60,7 @@ void createFile(int option);
 // Functions
 int main(int agrc, char *agrv[])
 {
+    setbuf(stdout, NULL);
     int option = atoi(agrv[1]);
     if(readFile(agrv[2]))
     {
@@ -69,8 +70,8 @@ int main(int agrc, char *agrv[])
         input[2] = atoi(agrv[5]);
 
         colorSeparation(input);
-        printPicture();
-       // blur();
+        //printPicture();
+        //blur();
 
     } else ;
     createFile(option);
@@ -143,7 +144,7 @@ void colorSeparation(int input[])
     {
         for(int j = 0; j < fInfoHeader.width; j++)
         {
-            if(fdata.dataArray[i][j][0] == input_r)
+           /* if(fdata.dataArray[i][j][0] == input_r)
             {
                 if(fdata.dataArray[i][j][1] == input_g)
                 {
@@ -151,9 +152,12 @@ void colorSeparation(int input[])
                     {
                          fdata.newArray[i][j][0] = input_r;
                          fdata.newArray[i][j][1] = input_g;
-                         fdata.newArray[i][j][2] = input_b;
+                         fdata.newArray[i][j][2] = input_b;*/
+                        fdata.newArray[i][j][0] = fdata.dataArray[i][j][0];
+                        fdata.newArray[i][j][1] = fdata.dataArray[i][j][1];
+                        fdata.newArray[i][j][2] = fdata.dataArray[i][j][2];
 
-                    } else {
+                    /*} else {
                         fdata.newArray[i][j][0] = 0;
                         fdata.newArray[i][j][1] = 0;
                         fdata.newArray[i][j][2] = 0;
@@ -167,7 +171,7 @@ void colorSeparation(int input[])
                 fdata.newArray[i][j][0] = 0;
                 fdata.newArray[i][j][1] = 0;
                 fdata.newArray[i][j][2] = 0;
-            }
+            }*/
         }
     }
 }
@@ -225,41 +229,60 @@ void createFile(int option)
     fwrite(&fHeader.reserved2, sizeof(fHeader.reserved2), 1, file);
     fwrite(&fHeader.offset, sizeof(fHeader.offset), 1, file);
     fwrite(&fInfoHeader, sizeof(fInfoHeader), 1, file);
-    for(int i = 0; i < fInfoHeader.height; i++)
-    {
-        for(int j = fInfoHeader.width - 1; j >= 0; j--)
-        {
-            for(int k = 2; k >= 0; k--)
-            {
-                fwrite(&fdata.newArray[i][j][k], sizeof(char), 1, file);
-            }
-        }
-    }
 
+    for(int i = 0; i < fInfoHeader.height; i++)
+        for(int j = fInfoHeader.width - 1; j >= 0; j--)
+            for(int k = 2; k >= 0; k--)
+                fwrite(&fdata.newArray[i][j][k], sizeof(char), 1, file);
+            
     fclose(file);
 }
 
-void blur()
+void blur() 
 {
-    unsigned char r, g, b;
-
-    for(int i = 0; i < fInfoHeader.height; i++)
-        for(int j = 0; j < fInfoHeader.width; j++)
+    unsigned char input_r, input_g, input_b;
+    for(int i = 0; i < fInfoHeader.height - 1; i++)
+        for(int j = 0; j < fInfoHeader.width - 1; j++)
         {
             double r = 0.0, g = 0.0, b = 0.0;
 
             for(int filX = 0; filX < FILTER_HEIGHT; filX++)
                 for(int filY = 0; filY < FILTER_WIDTH; filY++)
                 {
-                    int imgX = (i - FILTER_WIDTH / 2 + filX + fInfoHeader.width) % fInfoHeader.width;
-                    int imgY = (j - FILTER_HEIGHT / 2 + filY + fInfoHeader.height) % fInfoHeader.height;
-                    r += fdata.dataArray[i][j][0] * filter[filX][filY];
-                    g += fdata.dataArray[i][j][1] * filter[filX][filY];
-                    b += fdata.dataArray[i][j][2] * filter[filX][filY];
+                    //int imgX = (i - FILTER_WIDTH / 2 + filX + fInfoHeader.width) % fInfoHeader.width; //i - 1 + filX
+                    //int imgY = (j - FILTER_HEIGHT / 2 + filY + fInfoHeader.height) % fInfoHeader.height;//j - 1 + filY
+                    if(i==0 ||  j==0 || i== fInfoHeader.width - 1 || j == fInfoHeader.height - 1);   
+                    else{
+                        r += fdata.dataArray[i - FILTER_WIDTH / 2 + filX][j - FILTER_HEIGHT / 2 + filY][0] * filter[filX][filY];
+                        g += fdata.dataArray[i - FILTER_WIDTH / 2 + filX][j - FILTER_HEIGHT / 2 + filY][1] * filter[filX][filY];
+                        b += fdata.dataArray[i - FILTER_WIDTH / 2 + filX][j - FILTER_HEIGHT / 2 + filY][2] * filter[filX][filY];
+                    }
                 }
 
-            fdata.newArray[i][j][0] = (factor * r + bias) > 255 ? 255: (factor * r + bias) < 0 ? 0 : (factor * r + bias);
-            fdata.newArray[i][j][1] = (factor * g + bias) > 255 ? 255: (factor * g + bias) < 0 ? 0 : (factor * g + bias);
-            fdata.newArray[i][j][2] = (factor * b + bias) > 255 ? 255: (factor * b + bias) < 0 ? 0 : (factor * b + bias);
+            r = r * factor + bias;
+            if(r > 255)
+                r = 255;
+            else if(r < 0)
+                r = 0;
+
+            g = g * factor + bias;
+            if(g > 255)
+                g = 255;
+            else if(g < 0)
+               g = 0;
+
+            b = b * factor + bias;
+            if(b > 255)
+                b = 255;
+            else if(b < 0)
+                b = 0;
+
+           /* input_r = (factor * r + bias) > 255 ? 255: (factor * r + bias) < 0 ? 0 : (factor * r + bias);
+            input_b = (factor * b + bias) > 255 ? 255: (factor * b + bias) < 0 ? 0 : (factor * b + bias);
+            input_g = (factor * g + bias) > 255 ? 255: (factor * g + bias) < 0 ? 0 : (factor * g + bias);*/
+
+            fdata.newArray[i][j][0] = r;
+            fdata.newArray[i][j][1] = g;
+            fdata.newArray[i][j][2] = b;
         }   
 }
