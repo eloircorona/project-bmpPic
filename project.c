@@ -6,7 +6,7 @@
 
 // Define
 #define MAX_WIDTH 1000
-#define MAX_HEIGHT 1000
+#define MAX_HEIGHT 1000  
 
 #define FILTER_WIDTH 5
 #define FILTER_HEIGHT 5
@@ -44,7 +44,7 @@ fileInfoHeader fInfoHeader;
 fileData fdata;
 
 //global variables
-double filter[FILTER_WIDTH][FILTER_HEIGHT] = { 1,1,1,1,1,
+double filter[FILTER_WIDTH][FILTER_HEIGHT] = {  1,1,1,1,1,
                                                 1,1,1,1,1,
                                                 1,1,1,1,1,
                                                 1,1,1,1,1,
@@ -76,8 +76,9 @@ int main(int agrc, char *agrv[])
 
         //colorSeparation(input);
         //printPicture();
-        blur();
+        //blur();
         //monocromatico();
+        rotar();
 
     } else ;
     createFile(option);
@@ -159,10 +160,6 @@ void colorSeparation(int input[])
                          fdata.newArray[i][j][0] = input_r;
                          fdata.newArray[i][j][1] = input_g;
                          fdata.newArray[i][j][2] = input_b;
-                       /* fdata.newArray[i][j][0] = fdata.dataArray[i][j][0];
-                        fdata.newArray[i][j][1] = fdata.dataArray[i][j][1];
-                        fdata.newArray[i][j][2] = fdata.dataArray[i][j][2];*/
-
                     } else {
                         fdata.newArray[i][j][0] = 0;
                         fdata.newArray[i][j][1] = 0;
@@ -256,12 +253,12 @@ void blur()
             for(int filX = 0; filX < FILTER_HEIGHT; filX++)
                 for(int filY = 0; filY < FILTER_WIDTH; filY++)
                 {
-                    if(i<1 ||  j<1 || i>= fInfoHeader.width - 2 || j == fInfoHeader.height - 2);   
-                    else{
+                    //if(i<=1 ||  j<=1 || i >= fInfoHeader.width - 2 );   
+                    //else{
                         r += fdata.dataArray[i - FILTER_WIDTH / 2 + filX][j - FILTER_HEIGHT / 2 + filY][0] * filter[filX][filY];
                         g += fdata.dataArray[i - FILTER_WIDTH / 2 + filX][j - FILTER_HEIGHT / 2 + filY][1] * filter[filX][filY];
                         b += fdata.dataArray[i - FILTER_WIDTH / 2 + filX][j - FILTER_HEIGHT / 2 + filY][2] * filter[filX][filY];
-                    }
+                    
                 }
 
             r = r / factor + bias;
@@ -292,6 +289,7 @@ void blur()
 void monocromatico()
 {   
     int avg;
+
     for(int i = 0; i < fInfoHeader.height - 1; i++)
         for(int j = 0; j < fInfoHeader.width - 1; j++)
         {
@@ -306,6 +304,17 @@ void monocromatico()
 }
 
 void rotar()
-{
+{   
+    int aux;
 
+     for(int i = 0; i < fInfoHeader.height - 1; i++)
+        for(int j = fInfoHeader.width - 1; j > 0; j--)
+            for(int k = 0; k < 3; k++){
+                aux = fdata.dataArray[i][j][k];
+                fdata.newArray[i][fInfoHeader.width - 1 - j][k] = aux;
+            }       
+
+    aux = fInfoHeader.width;
+    fInfoHeader.width = fInfoHeader.height;
+    fInfoHeader.height = aux;
 }
