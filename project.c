@@ -43,24 +43,19 @@ fileHeader fHeader;
 fileInfoHeader fInfoHeader;
 fileData fdata;
 
-//global variables
-double filter[FILTER_WIDTH][FILTER_HEIGHT] = {  1,1,1,1,1,
-                                                1,1,1,1,1,
-                                                1,1,1,1,1,
-                                                1,1,1,1,1,
-                                                1,1,1,1,1};
-double factor = 25.0;
-double bias = 0.0;
-
 // Function Declarations
 int readFile(char *filename);
 char interface();
 void printPicture();
 void colorSeparation(int input[]);
 void blur();
+void movimiento();
+void matrices(double filter[][5], double factor, double bias);
 void createFile(int option);
+void bordes();
 void monocromatico();
 void rotar();
+
 
 // Functions
 int main(int agrc, char *agrv[])
@@ -77,8 +72,10 @@ int main(int agrc, char *agrv[])
         //colorSeparation(input);
         //printPicture();
         //blur();
+        //movimiento();
+        bordes();
         //monocromatico();
-        rotar();
+        //rotar();
 
     } else ;
     createFile(option);
@@ -237,52 +234,87 @@ void createFile(int option)
         for(int j = fInfoHeader.width - 1; j >= 0; j--)
             for(int k = 2; k >= 0; k--)
                 fwrite(&fdata.newArray[i][j][k], sizeof(char), 1, file);
-    //fwrite(&fdata.newArray, sizeof(fdata.newArray), 1, file);
-            
+     
     fclose(file);
 }
 
 void blur() 
 {
+    double filter[FILTER_WIDTH][FILTER_HEIGHT] = {  1,1,1,1,1,
+                                                    1,1,1,1,1,
+                                                    1,1,1,1,1,
+                                                    1,1,1,1,1,
+                                                    1,1,1,1,1};
+    double factor = 25.0;
+    double bias = 0.0;
 
+    matrices(filter, factor, bias);
+}
+
+void movimiento()
+{
+    double filter2[FILTER_WIDTH][FILTER_HEIGHT] = { 1,0,0,0,0,
+                                                    0,1,0,0,0,
+                                                    0,0,1,0,0,
+                                                    0,0,0,1,0,
+                                                    0,0,0,0,1};
+    double factor2 = 5.0;
+    double bias2 = 0.0;
+
+    matrices(filter2, factor2, bias2);
+}
+
+void bordes()
+{
+    double filter[FILTER_WIDTH][FILTER_HEIGHT] = {  0,0,-1,0,0,
+                                                    0,0,-1,0,0,
+                                                    0,0, 4,0,0,
+                                                    0,0,-1,0,0,
+                                                    0,0,-1,0,0};
+    double factor = 1.0;
+    double bias = 0.0;
+
+    matrices(filter, factor, bias);
+}
+
+void matrices(double filter[][5], double factor, double bias)
+{
     for(int i = 0; i < fInfoHeader.height - 1; i++)
         for(int j = 0; j < fInfoHeader.width - 1; j++)
         {
-            double r = 0.0, g = 0.0, b = 0.0;
+            double RGB[3] = {0,0,0};
 
             for(int filX = 0; filX < FILTER_HEIGHT; filX++)
                 for(int filY = 0; filY < FILTER_WIDTH; filY++)
                 {
-                    //if(i<=1 ||  j<=1 || i >= fInfoHeader.width - 2 );   
-                    //else{
-                        r += fdata.dataArray[i - FILTER_WIDTH / 2 + filX][j - FILTER_HEIGHT / 2 + filY][0] * filter[filX][filY];
-                        g += fdata.dataArray[i - FILTER_WIDTH / 2 + filX][j - FILTER_HEIGHT / 2 + filY][1] * filter[filX][filY];
-                        b += fdata.dataArray[i - FILTER_WIDTH / 2 + filX][j - FILTER_HEIGHT / 2 + filY][2] * filter[filX][filY];
+                        RGB[0] += fdata.dataArray[i - FILTER_WIDTH / 2 + filX][j - FILTER_HEIGHT / 2 + filY][0] * filter[filX][filY];
+                        RGB[1] += fdata.dataArray[i - FILTER_WIDTH / 2 + filX][j - FILTER_HEIGHT / 2 + filY][1] * filter[filX][filY];
+                        RGB[2] += fdata.dataArray[i - FILTER_WIDTH / 2 + filX][j - FILTER_HEIGHT / 2 + filY][2] * filter[filX][filY];
                     
                 }
 
-            r = r / factor + bias;
-            if(r > 255)
-                r = 255;
-            else if(r < 0)
-                r = 0;
+            RGB[0] = RGB[0] / factor + bias;
+            if(RGB[0] > 255)
+                RGB[0] = 255;
+            else if(RGB[0] < 0)
+                RGB[0] = 0;
 
-            g = g / factor + bias;
-            if(g > 255)
-                g = 255;
-            else if(g < 0)
-               g = 0;
+            RGB[1] = RGB[1] / factor + bias;
+            if(RGB[1] > 255)
+                RGB[1] = 255;
+            else if(RGB[1] < 0)
+               RGB[1] = 0;
 
 
-            b = b / factor + bias;
-            if(b > 255)
-                b = 255;
-            else if(b < 0)
-                b = 0;
+            RGB[2] = RGB[2] / factor + bias;
+            if(RGB[2] > 255)
+                RGB[2] = 255;
+            else if(RGB[2] < 0)
+                RGB[2] = 0;
 
-            fdata.newArray[i][j][0] = r;
-            fdata.newArray[i][j][1] = g;
-            fdata.newArray[i][j][2] = b;
+            fdata.newArray[i][j][0] = RGB[0];
+            fdata.newArray[i][j][1] = RGB[1];
+            fdata.newArray[i][j][2] = RGB[2];
         }   
 }
 
@@ -308,10 +340,10 @@ void rotar()
     int aux;
 
      for(int i = 0; i < fInfoHeader.height - 1; i++)
-        for(int j = fInfoHeader.width - 1; j > 0; j--)
+        for(int j = 0; j < fInfoHeader.width - 1; j++)
             for(int k = 0; k < 3; k++){
-                aux = fdata.dataArray[i][j][k];
-                fdata.newArray[i][fInfoHeader.width - 1 - j][k] = aux;
+                aux = fdata.dataArray[j][i][k];
+                fdata.newArray[i][j][k] = aux;
             }       
 
     aux = fInfoHeader.width;
