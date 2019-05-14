@@ -2,3 +2,5 @@
 # Ignore Compiled File
 
 project.exe
+*.pptx
+*.zip
