@@ -3,6 +3,8 @@
 This is a scholar project for the Structured Programming Class at ITESO.
 
 
+## Project information
+
 Status: Finished
 
 
